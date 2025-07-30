@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/leaflet.photon.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title>NK_Logistics</title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet.photon.js"></script>
+        <script src="data/Stavenhagen_Bezirk_plannung_1.js"></script>
+        <script src="data/Stavenhagen_Gangfolge_QGIS_Zust_2.js"></script>
+        <script>
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[53.585191035717365,12.579856896993356],[53.841402674768965,13.248128029246269]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_OSMStandard_0');
+        map.getPane('pane_OSMStandard_0').style.zIndex = 400;
+        var layer_OSMStandard_0 = L.tileLayer('http://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OSMStandard_0',
+            opacity: 1.0,
+            attribution: '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors, CC-BY-SA</a>',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+        });
+        layer_OSMStandard_0;
+        map.addLayer(layer_OSMStandard_0);
+        function pop_Stavenhagen_Bezirk_plannung_1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td class="visible-with-data" id="Bezirk" colspan="2"><strong>Bezirk</strong><br />' + (feature.properties['Bezirk'] !== null ? autolinker.link(String(feature.properties['Bezirk']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <td class="visible-with-data" id="Zust" colspan="2"><strong>Zust</strong><br />' + (feature.properties['Zust'] !== null ? autolinker.link(String(feature.properties['Zust']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Brief tgl.</th>\
+                        <td class="visible-with-data" id="Brief tgl.">' + (feature.properties['Brief tgl.'] !== null ? autolinker.link(String(feature.properties['Brief tgl.']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Brief 30</th>\
+                        <td class="visible-with-data" id="Brief 30">' + (feature.properties['Brief 30'] !== null ? autolinker.link(String(feature.properties['Brief 30']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Paket</th>\
+                        <td class="visible-with-data" id="Paket">' + (feature.properties['Paket'] !== null ? autolinker.link(String(feature.properties['Paket']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Abo</th>\
+                        <td class="visible-with-data" id="Abo">' + (feature.properties['Abo'] !== null ? autolinker.link(String(feature.properties['Abo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">HH</th>\
+                        <td class="visible-with-data" id="HH">' + (feature.properties['HH'] !== null ? autolinker.link(String(feature.properties['HH']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Km Abo</th>\
+                        <td class="visible-with-data" id="Km Abo">' + (feature.properties['Km Abo'] !== null ? autolinker.link(String(feature.properties['Km Abo']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Km HH</th>\
+                        <td class="visible-with-data" id="Km HH">' + (feature.properties['Km HH'] !== null ? autolinker.link(String(feature.properties['Km HH']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Km Brief 3</th>\
+                        <td class="visible-with-data" id="Km Brief 3">' + (feature.properties['Km Brief 3'] !== null ? autolinker.link(String(feature.properties['Km Brief 3']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Arbeitszei</th>\
+                        <td class="visible-with-data" id="Arbeitszei">' + (feature.properties['Arbeitszei'] !== null ? autolinker.link(String(feature.properties['Arbeitszei']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">6-Tage-Woc</th>\
+                        <td class="visible-with-data" id="6-Tage-Woc">' + (feature.properties['6-Tage-Woc'] !== null ? autolinker.link(String(feature.properties['6-Tage-Woc']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">IST  5-Tag</th>\
+                        <td class="visible-with-data" id="IST  5-Tag">' + (feature.properties['IST  5-Tag'] !== null ? autolinker.link(String(feature.properties['IST  5-Tag']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Stavenhagen_Bezirk_plannung_1_0(feature) {
+            switch(String(feature.properties['Zust'])) {
+                case 'Zust25201':
+                    return {
+                pane: 'pane_Stavenhagen_Bezirk_plannung_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(210,177,100,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Zust25203':
+                    return {
+                pane: 'pane_Stavenhagen_Bezirk_plannung_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(94,208,62,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Zust25205':
+                    return {
+                pane: 'pane_Stavenhagen_Bezirk_plannung_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(234,88,65,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Zust25207':
+                    return {
+                pane: 'pane_Stavenhagen_Bezirk_plannung_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(16,221,197,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Zust25209':
+                    return {
+                pane: 'pane_Stavenhagen_Bezirk_plannung_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(175,128,218,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Zust25211':
+                    return {
+                pane: 'pane_Stavenhagen_Bezirk_plannung_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(197,232,94,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Zust25213':
+                    return {
+                pane: 'pane_Stavenhagen_Bezirk_plannung_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(30,151,238,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Zust25215':
+                    return {
+                pane: 'pane_Stavenhagen_Bezirk_plannung_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(226,21,103,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Zust25217':
+                    return {
+                pane: 'pane_Stavenhagen_Bezirk_plannung_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(90,224,134,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Zust25219':
+                    return {
+                pane: 'pane_Stavenhagen_Bezirk_plannung_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(15,21,209,1.0)',
+                interactive: true,
+            }
+                    break;
+                default:
+                    return {
+                pane: 'pane_Stavenhagen_Bezirk_plannung_1',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(202,74,196,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_Stavenhagen_Bezirk_plannung_1');
+        map.getPane('pane_Stavenhagen_Bezirk_plannung_1').style.zIndex = 401;
+        map.getPane('pane_Stavenhagen_Bezirk_plannung_1').style['mix-blend-mode'] = 'normal';
+        var layer_Stavenhagen_Bezirk_plannung_1 = new L.geoJson(json_Stavenhagen_Bezirk_plannung_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Stavenhagen_Bezirk_plannung_1',
+            layerName: 'layer_Stavenhagen_Bezirk_plannung_1',
+            pane: 'pane_Stavenhagen_Bezirk_plannung_1',
+            onEachFeature: pop_Stavenhagen_Bezirk_plannung_1,
+            style: style_Stavenhagen_Bezirk_plannung_1_0,
+        });
+        bounds_group.addLayer(layer_Stavenhagen_Bezirk_plannung_1);
+        map.addLayer(layer_Stavenhagen_Bezirk_plannung_1);
+        function pop_Stavenhagen_Gangfolge_QGIS_Zust_2(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <td class="visible-with-data" id="Bezirk" colspan="2"><strong>Bezirk</strong><br />' + (feature.properties['Bezirk'] !== null ? autolinker.link(String(feature.properties['Bezirk']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Stavenhagen_Gangfolge_QGIS_Zust_2_0() {
+            return {
+                pane: 'pane_Stavenhagen_Gangfolge_QGIS_Zust_2',
+                opacity: 1,
+                color: 'rgba(228,26,28,1.0)',
+                dashArray: '',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 4.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Stavenhagen_Gangfolge_QGIS_Zust_2');
+        map.getPane('pane_Stavenhagen_Gangfolge_QGIS_Zust_2').style.zIndex = 402;
+        map.getPane('pane_Stavenhagen_Gangfolge_QGIS_Zust_2').style['mix-blend-mode'] = 'normal';
+        var layer_Stavenhagen_Gangfolge_QGIS_Zust_2 = new L.geoJson(json_Stavenhagen_Gangfolge_QGIS_Zust_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Stavenhagen_Gangfolge_QGIS_Zust_2',
+            layerName: 'layer_Stavenhagen_Gangfolge_QGIS_Zust_2',
+            pane: 'pane_Stavenhagen_Gangfolge_QGIS_Zust_2',
+            onEachFeature: pop_Stavenhagen_Gangfolge_QGIS_Zust_2,
+            style: style_Stavenhagen_Gangfolge_QGIS_Zust_2_0,
+        });
+        bounds_group.addLayer(layer_Stavenhagen_Gangfolge_QGIS_Zust_2);
+        map.addLayer(layer_Stavenhagen_Gangfolge_QGIS_Zust_2);
+        setBounds();
+        var i = 0;
+        layer_Stavenhagen_Bezirk_plannung_1.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Bezirk'] !== null?String('<div style="color: #323232; font-size: 10pt; font-family: \'Open Sans\', sans-serif;">' + layer.feature.properties['Bezirk']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Stavenhagen_Bezirk_plannung_1'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        var i = 0;
+        layer_Stavenhagen_Gangfolge_QGIS_Zust_2.eachLayer(function(layer) {
+            var context = {
+                feature: layer.feature,
+                variables: {}
+            };
+            layer.bindTooltip((layer.feature.properties['Zust'] !== null?String('<div style="color: #0054ff; font-size: 20pt; font-family: \'Open Sans\', sans-serif;">' + layer.feature.properties['Zust']) + '</div>':''), {permanent: true, offset: [-0, -16], className: 'css_Stavenhagen_Gangfolge_QGIS_Zust_2'});
+            labels.push(layer);
+            totalMarkers += 1;
+              layer.added = true;
+              addLabel(layer, i);
+              i++;
+        });
+        resetLabels([layer_Stavenhagen_Bezirk_plannung_1,layer_Stavenhagen_Gangfolge_QGIS_Zust_2]);
+        map.on("zoomend", function(){
+            resetLabels([layer_Stavenhagen_Bezirk_plannung_1,layer_Stavenhagen_Gangfolge_QGIS_Zust_2]);
+        });
+        map.on("layeradd", function(){
+            resetLabels([layer_Stavenhagen_Bezirk_plannung_1,layer_Stavenhagen_Gangfolge_QGIS_Zust_2]);
+        });
+        map.on("layerremove", function(){
+            resetLabels([layer_Stavenhagen_Bezirk_plannung_1,layer_Stavenhagen_Gangfolge_QGIS_Zust_2]);
+        });
+        </script>
+    </body>
+</html>
